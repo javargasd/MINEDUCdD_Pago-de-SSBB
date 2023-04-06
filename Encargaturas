@@ -1,139 +1,246 @@
 ***************************
 ***************************
 *Evaluación de cumplimiento
-*Indicadores 1.1 y 8.1
+*Encargatura directiva
+*Indicador 1.1
 *CdD 2023
 *Javier Vargas Díaz
 **************************
 **************************
 
-**************************
-*0. Fijamos directorio
-**************************
+*0. Fijamos directorio:
+***********************
 clear all
-global ruta "D:\Onedrive\OneDrive - Ministerio de Educación\informacion\indicador1.1\"
+global ruta "H:\Compromisos\CdD2023\Encargatura\Encargatura_t1\ENCARGATURA\"
 global input "$ruta\input"
 global temp "$ruta\temp"
 global output "$ruta\output"
+global output "$ruta\obse"
 
-*Importamos la información
-**************************
+
+*1. Importamos la información:
+******************************
+
+*1.1. Base de datos de plazas encargadas
+****************************************
+*Comentario: Corte de NEXUS al 10022023
 clear all
-import excel "$input\semana07ab_sh.xlsx", sheet("semana07ab_sh") firstrow
+import excel using "$input\semana09ab_sh.xlsx", sheet("semana09ab_sh") firstrow
 rename *, low
-save "$input\data_encargaturafinal", replace
+save "$input\base_10022023", replace
 
-************
-*Encargatura
-************
+*1.2. Base de datos de plazas observadas por equipo normativo
+*************************************************************
+*Indicador 1.1
+clear
+import excel using "$input\Formato_Resultados preliminares_DITEN.xlsx", sheet("Plazas_observadas_1.1") cellrange(A11:H247) firstrow
+gen ind=1.1
+rename *, low
+gen indicador_ex=1
+rename codigodeplaza codplaza 
+save "$input\Plazas_observadas_1", replace
+
+*2. Limpiamos la información
+****************************
 clear all
-use "$input\data_encargaturafinal"
-ta codcargo, m
-unique codplaza, detail
-duplicates tag codplaza, gen(a)
-duplicates drop codplaza, force
-keep if codcargo=="11002" | codcargo=="11007" 
-
-ta descargo a
-unique codplaza, detail
-
-ta sitlab
-keep if (sitlab=="V"| sitlab=="D"| sitlab=="E")
-
-merge m:1 codniveduc using "$input\niveles_minedu"
-
-drop if codniveduc=="00"
-drop if codniveduc=="K0" 
-drop if codniveduc=="M0" 
-drop if codniveduc=="T0"
-
-keep if (tipoplaza=="0" & subtipopla=="1") | (tipoplaza=="1" & subtipopla=="C")
-
-keep if ( sitlab=="D" | sitlab=="V" | sitlab=="E" )
-
-*Generando el calculo
-**********************
-
-*A nivel de UE
-**************
-*Denominador:
-br codplaza
-gen plaza=1 if marca_enc=="X"
-
-gen den_basica=1 if (codniveduc=="A1" | codniveduc=="A2" | codniveduc=="A3" | codniveduc=="B0" | codniveduc=="D0" | codniveduc=="D1" | codniveduc=="D2" | codniveduc=="E0" | codniveduc=="E1" | codniveduc=="E2" | codniveduc=="F0") & plaza!=.
-
-replace den_basica=0 if den_basica!=1 & sitlab=="V"
-
-gen den_cetpro=1 if codniveduc=="L0"
-replace den_cetpro=0 if den_cetpro!=1 & sitlab=="V"
-
-replace marca_enc="." if sitlab=="V"
-*Comentario: revisar los 15 que aparecen como encargados pero el marca_enc no tiene el X correspondiente
- 
-*Numerador
-gen num_basica=1 if den_basica==1 & marca_res=="X" 
-replace num_basica=0 if num_basica!=1
-
-gen num_cetpro=1 if den_cetpro==1 & marca_res=="X"
-replace num_cetpro=0 if num_cetpro!=1
-
-rename coduge codooii
-drop if _merge==1
-
+use "$input\base_10022023"
+merge m:m codplaza using "$input\Plazas_observadas_1", gen(m1) //comentario: hacemos esto para identificar las plazas que debe ser excluidas a partir del proceso realizado por el equipo normativo
+gen codooii=coduge
 destring codooii, replace
+sort indicador_ex
+drop m1 n
+merge m:1 codooii using "$input\padron_iged", gen(m2) //comentario: hacemos esto porque solo queremos tener los registros que corresponden a las IGED que son consideradas en los CdD 2023
+drop if m2!=3
+drop m2
 
+*2.1. Ejecutamos los filtros de DITEN
+*************************************
+*Comentario: Acá seguimos los pasos establecidos en la sintaxis remitida por la DITEN
+
+*a. Generamos las variables marca_encufd y marca_resolufd
+*********************************************************
+gen marca_encufd="X" if (codcargo=="11002" | codcargo=="11007") & (codsubtipt=="11" | codsubtipt=="13") & (sitlab=="V"| sitlab=="D"| sitlab=="E") & (codniveduc=="A1" | codniveduc=="A2" | codniveduc=="A3" | codniveduc=="A5" | codniveduc=="B0" | codniveduc=="D0" | codniveduc=="D1" | codniveduc=="D2" | codniveduc=="E0" | codniveduc=="E1" | codniveduc=="E2" | codniveduc=="F0") | (codplaza=="1111714251K2" | codplaza=="1176213211I2" | codplaza=="021851810618" | codplaza=="024871819612" | codplaza=="112611441322" | codplaza=="116021321326" | codplaza=="1122716221A7" | codplaza=="421274218513"| codplaza=="1157912811A3") 
+
+ta marca_enc marca_encufd, m
+
+/*			marca_encufd		
+MARCA_ENC				X		Total
+			579,374		289		579,663
+X			322			16,237	16,559
+Total		579,696		16,526	596,222*/
+
+gen marca_resolufd="X" if nresol!=""
+ta marca_reso marca_resolufd, m
+
+*b. Se excluyen las plazas de reemplazo a fin de no computarlas dos (02) veces y tambien las plazas de designados
+*****************************************************************************************************************
+replace marca_encufd="" if tipoplaza=="1" & (inlist(subtipopla, "A","3","8","9","D","M","S")) | sitlab=="G" & marca_encufd=="X"
+ta marca_enc marca_encufd, m
+/*			marca_encufd		
+MARCA_ENC				X		Total
+			579,405		258		579,663
+X			322			16,237	16,559
+Total		579,696		16,526	596,222*/
+
+*c. Se excluyen las plazas de las ODEC por no representar ser IIEE
+******************************************************************
+gen corto1=substr(nombie, 1, 4)
+gen corto2=substr(nombie, 1, 5)
+gen corto3=substr(nombie, 1, 6)
+
+replace marca_encufd="" if marca_encufd=="X" & (corto1=="ODEC")
+replace marca_encufd="" if marca_encufd=="X" & (corto2=="ONDEC")
+ 
+replace marca_resolufd="" if marca_encufd=="X" & (corto1=="ODEC")
+replace marca_resolufd="" if marca_encufd=="X" & (corto2=="ONDEC")
+
+ta marca_encufd marca_enc if (corto1=="ODEC" | corto2=="ONDEC")
+
+drop corto1 corto2 corto3 
+
+ta marca_enc marca_encufd, m
+/*			marca_encufd		
+MARCA_ENC				X		Total
+			579,429		234		579,663
+X			322			16,237	16,559
+Total		579,751		16,471	596,222*/
+
+
+*d. Se excluyen a los colegios militares
+****************************************
+gen corto4=substr(nombie, 9, 7)
+replace marca_encufd="" if marca_encufd=="X" & corto4=="MILITAR"
+
+ta marca_enc marca_encufd, m //aca hay una discrepancia con DITEN por una plaza para un colegio militar en Ilo que esta asignada a dicha UGEL y no al colegio que es una IGED diferente.
+/*			marca_encufd		
+MARCA_ENC				X		Total
+			579,429		234		579,663
+X			323			16,236	16,559
+Total		579,751		16,471	596,222*/
+
+*e. Se excluyen las plazas de reemplazo y espejo
+************************************************
+replace marca_encufd="" if marca_encufd=="X" & trim(estplaza)=="ENCRG"
+replace marca_resolufd="" if marca_encufd=="X" & trim(estplaza)=="ENCRG"
+
+ta marca_enc marca_encufd, m 
+/*			marca_encufd		
+MARCA_ENC				X		Total
+			579,642		21		579,663
+X			323			16,236	16,559
+Total		579,751		16,471	596,222*/
+
+
+*f. Se excluyen las plazas sin nombres y dni
+********************************************
+replace marca_resolufd="" if marca_encufd=="X" & numdocum=="" //Aca quitamos las plazas que aparecen con numero de resolucion pero que no tiene
+ta indicador_ex if marca_encufd=="X" & numdocum=="" 
+
+*g. Se excluyen las plazas identificadas por equipo normativo
+*************************************************************
+replace marca_encufd = "" if marca_encufd == "X" & indicador_ex==1
+
+*h. Marcamos los registros que cuentan con numero de resolución y quitamos aquellos registros que no corresponden
+*****************************************************************************************************************
+replace marca_resolufd="" if marca_encufd=="X" & marca_reso=="X" & sitlab=="V"
+replace marca_resolufd="" if marca_encufd=="X" & numdocum=="" & marca_resolufd=="X"
+
+ta marca_enc marca_encufd, m 
+/*			marca_encufd		
+MARCA_ENC				X		Total
+			579,663		0		579,663
+X			323			16,236	16,559
+Total		579,751		16,471	596,222*/
+
+ta descnivedu if marca_enc=="X" & marca_encufd=="" //En las 323 donde hay discrepancia, tenemos que 322 son tecnico productiva y una de secundaria
+/*
+DESCNIVEDU			Freq.	Percent	Cum.
+Secundaria			1		0.31	0.31
+Técnico Productiva	322		99.69	100
+Total				323		100	*/
+
+br if descnivedu=="Secundaria" &  marca_enc=="X" & marca_encufd=="" //Es la plaza 1112114010L2, que corresponde a una plaza para un colegio militar en Ilo que esta asignada a dicha UGEL y no al colegio que es una IGED diferente.
+
+gen difencarga=1 if marca_enc!=marca_encufd
+gen difresol=1 if marca_resolufd!=marca_reso
+
+save "$temp\base_encargaturafinalbasica", replace
+
+*3. Generamos el calculo
+************************
+
+*3.1. Denominador
+*****************
+gen den_basica_ufd=1 if (codcargo=="11002" | codcargo=="11007") & (codsubtipt=="11" | codsubtipt=="13") & (sitlab=="V"| sitlab=="D"| sitlab=="E") & (codniveduc=="A1" | codniveduc=="A2" | codniveduc=="A3" | codniveduc=="A5" | codniveduc=="B0" | codniveduc=="D0" | codniveduc=="D1" | codniveduc=="D2" | codniveduc=="E0" | codniveduc=="E1" | codniveduc=="E2" | codniveduc=="F0") & marca_encufd=="X" | (codplaza=="1111714251K2" | codplaza=="1176213211I2" | codplaza=="021851810618" | codplaza=="024871819612" | codplaza=="112611441322" | codplaza=="116021321326" | codplaza=="1122716221A7" | codplaza=="421274218513"| codplaza=="1157912811A3") 
+
+gen den_basica_diten=1 if (codcargo=="11002" | codcargo=="11007") & (codsubtipt=="11" | codsubtipt=="13") & (sitlab=="V"| sitlab=="D"| sitlab=="E") & (codniveduc=="A1" | codniveduc=="A2" | codniveduc=="A3" | codniveduc=="A5" | codniveduc=="B0" | codniveduc=="D0" | codniveduc=="D1" | codniveduc=="D2" | codniveduc=="E0" | codniveduc=="E1" | codniveduc=="E2" | codniveduc=="F0") & marca_enc=="X" | (codplaza=="1111714251K2" | codplaza=="1176213211I2" | codplaza=="021851810618" | codplaza=="024871819612" | codplaza=="112611441322" | codplaza=="116021321326" | codplaza=="1122716221A7" | codplaza=="421274218513"| codplaza=="1157912811A3") 
+
+ta descnivedu den_basica_ufd , m
+ta descnivedu den_basica_diten , m
+
+*3.2. Numerador
+***************
+gen numerador_basica_ufd=1 if (codcargo=="11002" | codcargo=="11007") & (codsubtipt=="11" | codsubtipt=="13") & (sitlab=="D"| sitlab=="E") & (codniveduc=="A1" | codniveduc=="A2" | codniveduc=="A3" | codniveduc=="A5" | codniveduc=="B0" | codniveduc=="D0" | codniveduc=="D1" | codniveduc=="D2" | codniveduc=="E0" | codniveduc=="E1" | codniveduc=="E2" | codniveduc=="F0") & marca_resolufd=="X" & marca_encufd=="X" | (codplaza=="1111714251K2" | codplaza=="1176213211I2" | codplaza=="021851810618" | codplaza=="024871819612" | codplaza=="112611441322" | codplaza=="116021321326" | codplaza=="1122716221A7" | codplaza=="421274218513"| codplaza=="1157912811A3") 
+replace numerador_basica_ufd=0 if numerador_basica_ufd!=1
+
+gen numerador_basica_diten=1 if (codcargo=="11002" | codcargo=="11007") & (codsubtipt=="11" | codsubtipt=="13") & (sitlab=="D"| sitlab=="E") & (codniveduc=="A1" | codniveduc=="A2" | codniveduc=="A3" | codniveduc=="A5" | codniveduc=="B0" | codniveduc=="D0" | codniveduc=="D1" | codniveduc=="D2" | codniveduc=="E0" | codniveduc=="E1" | codniveduc=="E2" | codniveduc=="F0") & marca_reso=="X" & marca_enc=="X" | (codplaza=="1111714251K2" | codplaza=="1176213211I2" | codplaza=="021851810618" | codplaza=="024871819612" | codplaza=="112611441322" | codplaza=="116021321326" | codplaza=="1122716221A7" | codplaza=="421274218513"| codplaza=="1157912811A3") 
+replace numerador_basica_diten=0 if numerador_basica_diten!=1
+
+ta descnivedu numerador_basica_ufd if den_basica_ufd==1, m
+ta descnivedu numerador_basica_diten if den_basica_diten==1, m
+
+ta sitlab numerador_basica_ufd if den_basica_ufd==1, m
+ta sitlab numerador_basica_diten if den_basica_diten==1, m
+
+ta codcargo numerador_basica_ufd if den_basica_ufd==1, m
+ta codcargo numerador_basica_diten if den_basica_diten==1, m
+
+*3.3. Ajustamos la información contra el padron IGED y mantenemos la información correspondiente al indicador 1.1 (nos quedamos con los registros de EBR+EBA+EBE)
+*****************************************************************************************************************************************************************
 merge m:m codooii using "$input\padron_iged", gen(m1) force
+sort m1
+drop if m1!=3
 
-collapse (sum) den_basica den_cetpro num_basica num_cetpro, by (codooii)
+keep if (codcargo=="11002" | codcargo=="11007") & (codsubtipt=="11" | codsubtipt=="13") & (sitlab=="V"| sitlab=="D"| sitlab=="E") & (codniveduc=="A1" | codniveduc=="A2" | codniveduc=="A3" | codniveduc=="A5" | codniveduc=="B0" | codniveduc=="D0" | codniveduc=="D1" | codniveduc=="D2" | codniveduc=="E0" | codniveduc=="E1" | codniveduc=="E2" | codniveduc=="F0") | (codplaza=="1111714251K2" | codplaza=="1176213211I2" | codplaza=="021851810618" | codplaza=="024871819612" | codplaza=="112611441322" | codplaza=="116021321326" | codplaza=="1122716221A7" | codplaza=="421274218513"| codplaza=="1157912811A3")  
+
+save "$temp\consolidadobasica", replace
+
+collapse (sum) den_basica_ufd numerador_basica_ufd den_basica_diten numerador_basica_diten, by (codooii)
 destring codooii, replace
 
 merge 1:m codooii using "$input\padron_iged"
-
 drop if _merge!=3
 drop _merge
-order codooii region ue iged tipo_entidad den_basica num_basica den_cetpro num_cetpro
-/*collapse (sum) den_basica num_basica den_cetpro num_cetpro, by(ue)
-merge 1:1 ue using "$input\dre_ue"
-drop if _merge!=3*/
 
-*Comentario: consultar porque OCROS no tiene informacion de encargatura
-*preserve / restore
-save "$input\indicador_ugel", replace
+rename (den_basica_diten numerador_basica_diten den_basica_ufd numerador_basica_ufd) (denominador_diten numerador_diten denominador_ufd numerador_ufd)
+drop iged_nompropio region_nompropio tipo_entidad_nompropio macroregion_nompropio
+order codooii region ue iged tipo_entidad denominador_diten numerador_diten denominador_ufd numerador_ufd
+
+save "$temp\indicadorbasica_ugel", replace
 
 *A nivel de Region
 ******************
-collapse (sum) den_basica num_basica den_cetpro num_cetpro, by(region)
-merge 1:m region using "$input\dre_ue"
-drop if tipodeiged=="UGEL EJECUTORA"
-save "$input\indicador_region", replace
+collapse (sum) denominador_diten numerador_diten denominador_ufd numerador_ufd, by(region)
+merge 1:m region using "$input\padron_iged"
+drop if tipo_entidad=="UGEL EJECUTORA" | tipo_entidad=="UGEL OPERATIVA"
+drop iged_nompropio region_nompropio tipo_entidad_nompropio macroregion_nompropio _merge
+save "$temp\indicadorbasica_region", replace
 
 *Agregando region+ue
 ********************
 clear all
-use "$input\indicador_ugel"
+use "$temp\indicadorbasica_ugel"
 drop if tipo_entidad=="DRE EJECUTORA" | tipo_entidad=="GRE EJECUTORA"
-append using "$input\indicador_region"
+append using "$temp\indicadorbasica_region"
 sort region
-/*merge 1:m codooii using "$input\dre_ue", gen(m1)
-drop _merge m1*/
 
-drop tipo_entidad iged_nompropio region_nompropio tipo_entidad_nompropio macroregion_nompropio tipodeiged _merge
-
+gen indicador=1.1
 merge 1:m codooii using "$input\padron_iged"
-drop _merge
+drop iged_nompropio region_nompropio tipo_entidad_nompropio macroregion_nompropio _merge
+gen valorlogrado_ufd=numerador_ufd/denominador_ufd
+gen valorlogrado_diten=numerador_diten/denominador_diten
 
-gen valorlogrado_basica=num_basica/den_basica
-gen valorlogrado_cetpro=num_cetpro/den_cetpro
-order codooii region ue iged tipo_entidad den_basica num_basica den_cetpro num_cetpro valorlogrado_basica valorlogrado_cetpro
-
-gen numtotal=num_basica+num_cetpro
-gen dentotal=den_basica+den_cetpro
-gen valorlogradototal=numtotal/dentotal
-
-*comentario: porque de las diferencias en numerador
-
-order codooii region ue iged tipo_entidad num_basica den_basica valorlogrado_basica num_cetpro den_cetpro   valorlogrado_cetpro numtotal dentotal valorlogradototal
-save "$output\resultado2022_", replace
+save "$output\resultadosindicadorbasica", replace
 
 *Graficamente:
 **************

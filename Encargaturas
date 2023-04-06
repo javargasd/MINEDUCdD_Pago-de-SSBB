@@ -60,15 +60,7 @@ drop m2
 *a. Generamos las variables marca_encufd y marca_resolufd
 *********************************************************
 gen marca_encufd="X" if (codcargo=="11002" | codcargo=="11007") & (codsubtipt=="11" | codsubtipt=="13") & (sitlab=="V"| sitlab=="D"| sitlab=="E") & (codniveduc=="A1" | codniveduc=="A2" | codniveduc=="A3" | codniveduc=="A5" | codniveduc=="B0" | codniveduc=="D0" | codniveduc=="D1" | codniveduc=="D2" | codniveduc=="E0" | codniveduc=="E1" | codniveduc=="E2" | codniveduc=="F0") | (codplaza=="1111714251K2" | codplaza=="1176213211I2" | codplaza=="021851810618" | codplaza=="024871819612" | codplaza=="112611441322" | codplaza=="116021321326" | codplaza=="1122716221A7" | codplaza=="421274218513"| codplaza=="1157912811A3") 
-
 ta marca_enc marca_encufd, m
-
-/*			marca_encufd		
-MARCA_ENC				X		Total
-			579,374		289		579,663
-X			322			16,237	16,559
-Total		579,696		16,526	596,222*/
-
 gen marca_resolufd="X" if nresol!=""
 ta marca_reso marca_resolufd, m
 
@@ -76,11 +68,6 @@ ta marca_reso marca_resolufd, m
 *****************************************************************************************************************
 replace marca_encufd="" if tipoplaza=="1" & (inlist(subtipopla, "A","3","8","9","D","M","S")) | sitlab=="G" & marca_encufd=="X"
 ta marca_enc marca_encufd, m
-/*			marca_encufd		
-MARCA_ENC				X		Total
-			579,405		258		579,663
-X			322			16,237	16,559
-Total		579,696		16,526	596,222*/
 
 *c. Se excluyen las plazas de las ODEC por no representar ser IIEE
 ******************************************************************
@@ -99,12 +86,6 @@ ta marca_encufd marca_enc if (corto1=="ODEC" | corto2=="ONDEC")
 drop corto1 corto2 corto3 
 
 ta marca_enc marca_encufd, m
-/*			marca_encufd		
-MARCA_ENC				X		Total
-			579,429		234		579,663
-X			322			16,237	16,559
-Total		579,751		16,471	596,222*/
-
 
 *d. Se excluyen a los colegios militares
 ****************************************
@@ -112,24 +93,11 @@ gen corto4=substr(nombie, 9, 7)
 replace marca_encufd="" if marca_encufd=="X" & corto4=="MILITAR"
 
 ta marca_enc marca_encufd, m //aca hay una discrepancia con DITEN por una plaza para un colegio militar en Ilo que esta asignada a dicha UGEL y no al colegio que es una IGED diferente.
-/*			marca_encufd		
-MARCA_ENC				X		Total
-			579,429		234		579,663
-X			323			16,236	16,559
-Total		579,751		16,471	596,222*/
 
 *e. Se excluyen las plazas de reemplazo y espejo
 ************************************************
 replace marca_encufd="" if marca_encufd=="X" & trim(estplaza)=="ENCRG"
 replace marca_resolufd="" if marca_encufd=="X" & trim(estplaza)=="ENCRG"
-
-ta marca_enc marca_encufd, m 
-/*			marca_encufd		
-MARCA_ENC				X		Total
-			579,642		21		579,663
-X			323			16,236	16,559
-Total		579,751		16,471	596,222*/
-
 
 *f. Se excluyen las plazas sin nombres y dni
 ********************************************
@@ -146,19 +114,7 @@ replace marca_resolufd="" if marca_encufd=="X" & marca_reso=="X" & sitlab=="V"
 replace marca_resolufd="" if marca_encufd=="X" & numdocum=="" & marca_resolufd=="X"
 
 ta marca_enc marca_encufd, m 
-/*			marca_encufd		
-MARCA_ENC				X		Total
-			579,663		0		579,663
-X			323			16,236	16,559
-Total		579,751		16,471	596,222*/
-
 ta descnivedu if marca_enc=="X" & marca_encufd=="" //En las 323 donde hay discrepancia, tenemos que 322 son tecnico productiva y una de secundaria
-/*
-DESCNIVEDU			Freq.	Percent	Cum.
-Secundaria			1		0.31	0.31
-Técnico Productiva	322		99.69	100
-Total				323		100	*/
-
 br if descnivedu=="Secundaria" &  marca_enc=="X" & marca_encufd=="" //Es la plaza 1112114010L2, que corresponde a una plaza para un colegio militar en Ilo que esta asignada a dicha UGEL y no al colegio que es una IGED diferente.
 
 gen difencarga=1 if marca_enc!=marca_encufd

@@ -67,7 +67,6 @@ use "$input/agua", clear
 	drop  espejo sum_espejo a m2
 	save "$temp/agua", replace
 	
-	
 use "$input/luz", clear
 	duplicates report sec_ejec codigo_local codigo_modular suministro_luz
 	duplicates tag sec_ejec codigo_local codigo_modular suministro_luz, gen(a)
@@ -84,17 +83,6 @@ use "$input/luz", clear
 	drop if m2!=3
 	drop  espejo sum_espejo a m2
 	save "$temp/agua", replace
-
-
-	
-	
-	
-	
-	
-	
-	
-	
-	
 
 foreach type in agua luz{
 	use "$input/`type'", replace

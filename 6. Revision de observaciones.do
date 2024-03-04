@@ -3,8 +3,8 @@ Sintaxis de evaluacion de pago de SSBB
 Indicador: 4.1
 Etapa 03_Validación de resultados
 Fecha:31052023
-Elaborado por: Javier Vargas Díaz / Katherine De La Cruz Gonzales
-*****************************************************************/
+Elaborado por: Javier Vargas Díaz
+*******************************************/
 
 *0. Determinamos las rutas
 **************************

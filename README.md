@@ -7,14 +7,14 @@ Las bases de datos que se encuentra disponibles en este repositorio corresponde 
 Asegurar el pago oportuno de servicios básicos de los locales educativos de las IIEE de la Educación Básica (EBR, EBE, EBA), Educación Técnico-Productiva y Educación Superior
 (Tecnológica y Pedagógica), con la finalidad de que se aseguren las condiciones operativas básicas de los locales educativos para la provisión del servicio educativo presencial.
 
-
-
-
 # Files structure
 
 ```markdown
-├── data                        
-  ├── raw                       -> File to download the data  in CSV format.
+├── Base de datos                        
+  ├── input                        -> File to download the data  in dta format.
+  ├── temp                         -> File to download the data  in dta format.
+  ├── output                       -> File to download the data  in dta format.
+
 ├── scripts
   ├── '1 Web Scraping.py'       -> Program for web scrapping. Return a csv file with enconded utf-8 and a data frame.
 ```

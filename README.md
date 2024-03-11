@@ -12,16 +12,16 @@ Las bases de datos que se encuentra disponibles en este repositorio corresponde 
 
 ```markdown
 ├── Base de datos                        
-  ├── input                        -> File to download the data  in dta format.
-  ├── temp                         -> File to download the data  in dta format.
-  ├── output                       -> File to download the data  in dta format.
+  ├── input                        -> File to download the data in dta format.
+  ├── temp                         -> File to download the data in dta format.
+  ├── output                       -> File to download the data in dta format.
 
 ├── scripts
-  ├── '1. Definición de denominador.do'            -> Program for web scrapping. Return a csv file with enconded utf-8 and a data frame.
-  ├── '2. Definición de pago_agua.do'              -> Program for web scrapping. Return a csv file with enconded utf-8 and a data frame.
-  ├── '3. Definición de pago_luz.do'               -> Program for web scrapping. Return a csv file with enconded utf-8 and a data frame.
-  ├── '4. Definición de cumplimiento.do'           -> Program for web scrapping. Return a csv file with enconded utf-8 and a data frame.
-  ├── '5. Revision de resultados finales.do'       -> Program for web scrapping. Return a csv file with enconded utf-8 and a data frame.
+  ├── '1. Definición de denominador.do'            
+  ├── '2. Definición de pago_agua.do'              
+  ├── '3. Definición de pago_luz.do'               
+  ├── '4. Definición de cumplimiento.do'           
+  ├── '5. Revision de resultados finales.do'       
 ```
 
 # Resultados

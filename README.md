@@ -4,7 +4,7 @@ Asegurar el pago oportuno de servicios básicos de los locales educativos de las
 (Tecnológica y Pedagógica), con la finalidad de que se aseguren las condiciones operativas básicas de los locales educativos para la provisión del servicio educativo presencial.
 
 # Organización de la información
-Las bases de datos que se encuentra disponibles en este repositorio corresponde al periodo 2019-2024 con corte del Modulo Complementario de SIGA al 20/02/2024.
+Las bases de datos, códigos, documentos que se encuentra disponibles en este repositorio corresponde al periodo 2019-2024 con corte del Modulo Complementario de SIGA al 01/03/2024.
 ```markdown
 ├── README.md                <- README principal.
 ├── Bases de datos

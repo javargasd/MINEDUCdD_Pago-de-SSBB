@@ -16,7 +16,7 @@ Las bases de datos que se encuentra disponibles en este repositorio corresponde 
   ├── temp                         -> File to download the data in dta format.
   ├── output                       -> File to download the data in dta format.
 
-├── scripts
+├── Codigos
   ├── '1. Definición de denominador.do'            
   ├── '2. Definición de pago_agua.do'              
   ├── '3. Definición de pago_luz.do'               

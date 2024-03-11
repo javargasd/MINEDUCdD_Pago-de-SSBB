@@ -8,3 +8,13 @@ Asegurar el pago oportuno de servicios básicos de los locales educativos de las
 (Tecnológica y Pedagógica), con la finalidad de que se aseguren las condiciones operativas básicas de los locales educativos para la provisión del servicio educativo presencial.
 
 ## Cálculo
+
+
+# Files structure
+
+```markdown
+├── data                        
+  ├── raw                       -> File to download the data  in CSV format.
+├── scripts
+  ├── '1 Web Scraping.py'       -> Program for web scrapping. Return a csv file with enconded utf-8 and a data frame.
+```

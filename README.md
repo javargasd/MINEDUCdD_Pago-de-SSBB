@@ -10,8 +10,7 @@ Las bases de datos que se encuentra disponibles en este repositorio corresponden
 │   ├── input                <- Datos originales, datos inmutable sin ninguna transformación.
 │   ├── output               <- Datos finales.
 │   └── temp                 <- Datos intermedios que ya han sido transformados.
-│
-│    └── Codigos             <- Carpeta de codigos
+|   └── Codigos              <- Carpeta de codigos
 │            ├── '1. Definición de denominador.do'            
 │            ├── '2. Definición de pago_agua.do'              
 │            ├── '3. Definición de pago_luz.do'               
